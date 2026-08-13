@@ -1,0 +1,198 @@
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,700;1,500&family=Cinzel+Decorative:wght@700;900&display=swap');
+
+/* ==========================================
+   CONFIGURAÇÕES GERAIS E TEMA
+   ========================================== */
+:root {
+  --bg-void: #060608;
+  --bg-card: #0d0e12;
+  --crimson-main: #dc2626;
+  --crimson-dark: #7f1d1d;
+  --border-dark: #22232a;
+  --text-bone: #e2e8f0;
+}
+
+body {
+  font-family: 'Chakra Petch', sans-serif;
+  background-color: var(--bg-void);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(185, 28, 28, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 50% 100%, rgba(15, 23, 42, 0.6) 0%, transparent 70%);
+  color: var(--text-bone);
+}
+
+/* Tipografia de Destaque */
+.se-brand {
+  font-family: 'Cinzel Decorative', serif;
+  letter-spacing: 2px;
+}
+
+/* Textura do Cabeçalho */
+.se-gothic-stripes {
+  background: repeating-linear-gradient(
+    -45deg,
+    #0d0e12,
+    #0d0e12 12px,
+    #060608 12px,
+    #060608 24px
+  );
+}
+
+/* ==========================================
+   CARDS & CONTAINERS
+   ========================================== */
+.se-card-glow {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-dark);
+  box-shadow: 5px 5px 0px #000000;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.se-card-glow:hover {
+  border-color: var(--crimson-main);
+  box-shadow: 5px 5px 18px rgba(220, 38, 38, 0.2), 5px 5px 0px #000000;
+  transform: translateY(-2px);
+}
+
+/* ==========================================
+   BOTÕES
+   ========================================== */
+.se-btn-main, .se-btn-secondary {
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.se-btn-main {
+  background-color: var(--crimson-dark);
+  color: #ffffff;
+  border: 1px solid var(--crimson-main);
+  font-weight: 700;
+  box-shadow: 3px 3px 0px #000000;
+  transition: all 0.15s ease;
+}
+
+.se-btn-main:hover {
+  background-color: var(--crimson-main);
+  box-shadow: 1px 1px 0px #000000;
+  transform: translate(2px, 2px);
+}
+
+.se-btn-secondary {
+  background-color: #121318;
+  color: #a1a1aa;
+  border: 1px solid #27272a;
+  font-weight: 600;
+  box-shadow: 3px 3px 0px #000000;
+  transition: all 0.15s ease;
+}
+
+.se-btn-secondary:hover {
+  background-color: #1f2028;
+  border-color: #52525b;
+  color: #ffffff;
+}
+
+.se-btn-main:active, .se-btn-secondary:active {
+  transform: scale(0.97);
+}
+
+/* ==========================================
+   CAMPOS DE ENTRADA
+   ========================================== */
+.se-input-field {
+  background-color: #08090c;
+  border: 1px solid #27272a;
+  color: #f4f4f5;
+  transition: all 0.2s ease;
+}
+
+.se-input-field:focus {
+  outline: none;
+  border-color: var(--crimson-main);
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.25);
+}
+
+/* ==========================================
+   INTERFACE & ACESSIBILIDADE
+   ========================================== */
+.drag-scroll-mask {
+  mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+}
+
+button:focus-visible, 
+a:focus-visible, 
+input:focus-visible, 
+select:focus-visible, 
+textarea:focus-visible {
+  outline: 2px solid var(--crimson-main) !important;
+  outline-offset: 2px;
+}
+
+/* ==========================================
+   SCROLLBAR
+   ========================================== */
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+::-webkit-scrollbar-track {
+  background: #060608;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1f2028;
+  border: 1px solid #3f3f46;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--crimson-dark);
+}
+
+@keyframes pulseGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(220, 38, 38, 0.4)); }
+  50% { filter: drop-shadow(0 0 14px rgba(220, 38, 38, 0.8)); }
+}
+
+.animate-soul-glow {
+  animation: pulseGlow 4s infinite ease-in-out;
+}
+
+/* ==========================================
+   ANIMATION DOS TOASTS
+   ========================================== */
+.toast {
+  animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.toast-out {
+  animation: toastOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toastOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+}

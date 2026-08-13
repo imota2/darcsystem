@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D'Arc System - Central de Protocolos</title>
+  
+  <!-- ÍCONE DO SITE (FAVICON) -->
+  <link rel="icon" type="image/png" href="img/sun-soul2.png">
+  <link rel="apple-touch-icon" href="img/sun-soul2.png">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen relative flex flex-col justify-between">
+
+  <!-- CONTAINER DE ALERTAS FLUTUANTES -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- CABEÇALHO PRINCIPAL -->
+  <header class="se-gothic-stripes border-b-2 border-red-900/60 p-3 sm:p-4 sticky top-0 z-20 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
+    <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
+      
+      <div class="flex items-center gap-2 sm:gap-4">
+        <div class="relative w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
+          <img src="img/sun-soul2.png" alt="Emblema do Sistema" class="w-full h-full object-contain animate-soul-glow">
+        </div>
+
+        <div>
+          <h1 class="text-lg sm:text-2xl font-black tracking-widest text-zinc-100 se-brand">
+            D'ARC<span class="text-red-600">SYSTEM</span>
+          </h1>
+          <p class="text-[9px] sm:text-[10px] text-zinc-500 font-bold uppercase tracking-[0.25em] leading-none">Gestão Central de Diretórios</p>
+        </div>
+      </div>
+
+      <button id="openModalBtn" class="se-btn-main px-3.5 py-2 sm:px-4 sm:py-2 text-[11px] sm:text-xs rounded-xl flex items-center gap-2 active:scale-95">
+        <span class="hidden xs:inline">NOVO REGISTRO</span><span class="xs:hidden">+ ADICIONAR</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="max-w-5xl mx-auto px-3 sm:px-4 mt-6 sm:mt-8 space-y-6 flex-grow w-full">
+
+    <!-- DASHBOARD DE PROTOCOLOS ( NOVO ) -->
+    <section class="space-y-3">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-[#0b0c0f] border border-zinc-800/80 rounded-2xl p-3.5 sm:p-4 shadow-[4px_4px_0px_#000000] relative overflow-hidden">
+          <div class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Total Registros</div>
+          <div id="dashTotal" class="text-xl sm:text-2xl font-black text-zinc-100 font-mono mt-1">0</div>
+          <div class="absolute -right-1 -bottom-2 text-zinc-900 font-black text-4xl select-none pointer-events-none">#</div>
+        </div>
+
+        <div class="bg-[#0b0c0f] border border-zinc-800/80 rounded-2xl p-3.5 sm:p-4 shadow-[4px_4px_0px_#000000] relative overflow-hidden">
+          <div class="text-[10px] font-bold text-emerald-500/80 uppercase tracking-widest">Enviados</div>
+          <div id="dashSent" class="text-xl sm:text-2xl font-black text-emerald-400 font-mono mt-1">0</div>
+          <div class="absolute -right-1 -bottom-2 text-emerald-950/40 font-black text-4xl select-none pointer-events-none">✓</div>
+        </div>
+
+        <div class="bg-[#0b0c0f] border border-zinc-800/80 rounded-2xl p-3.5 sm:p-4 shadow-[4px_4px_0px_#000000] relative overflow-hidden">
+          <div class="text-[10px] font-bold text-amber-500/80 uppercase tracking-widest">Pendentes</div>
+          <div id="dashPending" class="text-xl sm:text-2xl font-black text-amber-400 font-mono mt-1">0</div>
+          <div class="absolute -right-1 -bottom-2 text-amber-950/40 font-black text-4xl select-none pointer-events-none">⧖</div>
+        </div>
+
+        <div class="bg-[#0b0c0f] border border-zinc-800/80 rounded-2xl p-3.5 sm:p-4 shadow-[4px_4px_0px_#000000] relative overflow-hidden">
+          <div class="text-[10px] font-bold text-red-500/80 uppercase tracking-widest">Inativos</div>
+          <div id="dashInvalid" class="text-xl sm:text-2xl font-black text-red-400 font-mono mt-1">0</div>
+          <div class="absolute -right-1 -bottom-2 text-red-950/40 font-black text-4xl select-none pointer-events-none">⚠</div>
+        </div>
+      </div>
+
+      <!-- PAINEL DE STATUS -->
+      <div class="flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono bg-[#08090c] border border-zinc-800/60 rounded-xl px-4 py-2 gap-2 text-zinc-400 shadow-sm">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>STATUS DO SISTEMA: <strong class="text-emerald-400">OPERACIONAL</strong></span>
+        </div>
+        <div>
+          ÚLTIMA SINCRONIZAÇÃO: <span id="lastSyncTime" class="text-zinc-200">--:--:--</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROCESSAMENTO DE ENTRADAS E OCR -->
+    <section class="bg-[#0b0c0f] border border-zinc-800/80 rounded-2xl p-4 sm:p-5 shadow-[5px_5px_0px_#000000] space-y-3 relative overflow-hidden">
+      <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-red-900/10 rounded-full blur-2xl pointer-events-none"></div>
+
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <h2 class="text-xs sm:text-sm font-bold text-zinc-200 se-brand flex items-center gap-2">
+          <span class="text-red-600">//</span> PROCESSAMENTO DE DADOS EM MASSA
+        </h2>
+        
+        <div class="flex items-center gap-2">
+          <label for="ocrImageInput" class="se-btn-secondary px-3 py-1.5 text-[11px] rounded-lg cursor-pointer flex items-center gap-1.5 transition">
+            <span>DIGITALIZAR IMAGEM (OCR)</span>
+          </label>
+          <input type="file" id="ocrImageInput" accept="image/*" class="hidden">
+        </div>
+      </div>
+
+      <div id="ocrStatus" class="hidden text-xs text-red-400 font-mono font-bold bg-red-950/30 border border-red-900/40 p-2 rounded-lg">
+        Processando documento visual...
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2">
+        <textarea id="bulkInputText" rows="2" 
+          placeholder="Insira linhas de contato ou cole o texto capturado..." 
+          class="se-input-field flex-1 p-3 rounded-xl text-xs font-mono resize-none"></textarea>
+        
+        <button id="processBulkBtn" class="se-btn-main px-5 py-3 text-xs rounded-xl flex sm:flex-col items-center justify-center gap-1 whitespace-nowrap">
+          <span>PROCESSAR</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- BARRA DE BUSCA E FILTROS -->
+    <section class="space-y-3">
+      <div class="relative">
+        <input type="text" id="searchInput" placeholder="Pesquisar por nome, número ou anotações internas..." 
+          class="se-input-field w-full px-4 py-3 rounded-xl text-xs sm:text-sm placeholder-zinc-600">
+      </div>
+
+      <!-- BOTÕES DE FILTRO -->
+      <div class="drag-scroll-mask overflow-x-auto pb-1 no-scrollbar">
+        <div id="filterContainer" class="flex items-center gap-2 drag-scroll w-max py-1">
+          <button data-category="TODOS" class="filter-btn se-btn-main px-3.5 py-1.5 text-[11px] rounded-lg whitespace-nowrap">
+            TODOS
+          </button>
+          <button data-category="Lotes" class="filter-btn se-btn-secondary px-3.5 py-1.5 text-[11px] rounded-lg whitespace-nowrap">
+            LOTES
+          </button>
+          <button data-category="Principais" class="filter-btn se-btn-secondary px-3.5 py-1.5 text-[11px] rounded-lg whitespace-nowrap">
+            PRINCIPAIS
+          </button>
+          <button data-category="Operacionais" class="filter-btn se-btn-secondary px-3.5 py-1.5 text-[11px] rounded-lg whitespace-nowrap">
+            OPERACIONAIS
+          </button>
+          <button data-category="Reservados" class="filter-btn se-btn-secondary px-3.5 py-1.5 text-[11px] rounded-lg whitespace-nowrap">
+            RESERVADOS
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FERRAMENTAS E AÇÕES EM MASSA (ORGANIZADO COM MENU DROPDOWN) -->
+    <section class="bg-[#0a0b0e] border border-zinc-800/80 rounded-2xl p-3 sm:p-4 shadow-[5px_5px_0px_#000000]">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        
+        <!-- BLOCO 1: SELEÇÃO RÁPIDA -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <button id="selectAllBtn" onclick="toggleSelectAll()" 
+            class="se-btn-secondary px-3.5 py-2 text-xs rounded-xl flex items-center gap-1.5 flex-shrink-0">
+            <span>Marcar Todos</span>
+          </button>
+          
+          <button onclick="copyAllNumbers()" 
+            class="se-btn-main px-4 py-2 text-xs rounded-xl flex items-center gap-1.5 flex-shrink-0">
+            <span>Copiar Todos</span>
+          </button>
+
+          <span id="selectedCountBadge" class="hidden text-xs font-mono font-bold text-red-400 bg-red-950/50 border border-red-900/60 px-3 py-1.5 rounded-xl">
+            0 selecionados
+          </span>
+
+          <button id="deleteSelectedBtn" onclick="confirmDeleteSelected()" 
+            class="hidden bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800 px-3.5 py-2 text-xs font-bold rounded-xl transition items-center gap-1.5 flex-shrink-0">
+            <span>Excluir Marcados</span>
+          </button>
+        </div>
+
+        <!-- BLOCO 2: MENU UNIFICADO DE FERRAMENTAS -->
+        <div class="relative inline-block text-left">
+          <button id="toolsDropdownBtn" onclick="toggleToolsMenu()" 
+            class="se-btn-secondary px-4 py-2 text-xs rounded-xl font-bold flex items-center gap-2 active:scale-95 border-zinc-700">
+            <span>FERRAMENTAS & DADOS</span>
+            <span class="text-[10px]">▼</span>
+          </button>
+
+          <!-- MENU DROPDOWN -->
+          <div id="toolsDropdownMenu" class="hidden absolute right-0 mt-2 w-56 rounded-2xl bg-[#0e0f14] border border-zinc-800 shadow-[0_10px_30px_rgba(0,0,0,0.9)] z-30 p-2 space-y-1">
+            <button onclick="shareContactsCSV(); toggleToolsMenu()" class="w-full text-left px-3 py-2 text-xs text-emerald-400 hover:bg-emerald-950/40 rounded-xl transition flex items-center gap-2 font-semibold">
+              <span>📤 Enviar CSV</span>
+            </button>
+            <button onclick="exportContactsCSV(); toggleToolsMenu()" class="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-zinc-800/60 rounded-xl transition flex items-center gap-2 font-semibold">
+              <span>📊 Exportar CSV</span>
+            </button>
+            <label for="importCsvInput" class="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-zinc-800/60 rounded-xl transition flex items-center gap-2 cursor-pointer font-semibold">
+              <span>📥 Importar CSV</span>
+            </label>
+            <input type="file" id="importCsvInput" accept=".csv" class="hidden" onchange="importContactsCSV(event)">
+
+            <div class="border-t border-zinc-800/80 my-1"></div>
+
+            <button onclick="exportContactsJSON(); toggleToolsMenu()" class="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-zinc-800/60 rounded-xl transition flex items-center gap-2 font-semibold">
+              <span>💾 Backup JSON</span>
+            </button>
+            <label for="importJsonInput" class="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-zinc-800/60 rounded-xl transition flex items-center gap-2 cursor-pointer font-semibold">
+              <span>📂 Restaurar JSON</span>
+            </label>
+            <input type="file" id="importJsonInput" accept=".json" class="hidden" onchange="importContactsJSON(event)">
+
+            <div class="border-t border-zinc-800/80 my-1"></div>
+
+            <button onclick="confirmDeleteAll(); toggleToolsMenu()" class="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-950/50 rounded-xl transition flex items-center gap-2 font-bold">
+              <span>🗑 Limpar Base de Dados</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PAINEL DE CARDS -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5" id="cardsGrid">
+      <!-- Renderizado via JavaScript -->
+    </section>
+
+  </main>
+
+  <!-- MODAL DE NOVO REGISTRO -->
+  <div id="modalOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+    <div class="bg-[#0b0c0f] border-2 border-red-900/80 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-[8px_8px_0px_#000000] space-y-4 my-auto">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <h2 class="text-base sm:text-lg font-bold text-zinc-100 se-brand flex items-center gap-2">
+          NOVO PROTOCOLO DE REGISTRO
+        </h2>
+        <button id="closeModalBtn" class="text-zinc-500 hover:text-white font-bold p-1">✕</button>
+      </div>
+
+      <form class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-bold text-red-400 mb-1 uppercase tracking-wider">Identificador / Nome</label>
+          <input type="text" placeholder="Ex: Gabriel Vance" class="se-input-field w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-red-400 mb-1 uppercase tracking-wider">Número do Terminal</label>
+          <input type="tel" id="phoneModalInput" placeholder="(11) 99999-9999" class="se-input-field w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-red-400 mb-1 uppercase tracking-wider">Classificação</label>
+          <select class="se-input-field w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm">
+            <option value="Principais">Principais / Diretoria</option>
+            <option value="Operacionais">Operacionais / Suporte</option>
+            <option value="Reservados">Reservados / Restrito</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-red-400 mb-1 uppercase tracking-wider">Observações do Registro</label>
+          <textarea rows="3" placeholder="Insira detalhes adicionais sobre esta entrada..." class="se-input-field w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm"></textarea>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <button type="button" id="cancelModalBtn" class="flex-1 se-btn-secondary py-2.5 text-xs rounded-xl">
+            CANCELAR
+          </button>
+          <button type="submit" class="flex-1 se-btn-main py-2.5 text-xs rounded-xl">
+            CONFIRMAR
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMAÇÃO -->
+  <div id="confirmOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-[#0d0e12] border border-red-900 w-full max-w-sm rounded-2xl p-5 shadow-[6px_6px_0px_#000000] text-center space-y-4">
+      <p id="confirmMessage" class="text-xs font-bold text-zinc-200">Deseja confirmar esta ação?</p>
+      <div class="flex items-center gap-2 pt-2">
+        <button id="cancelConfirmBtn" class="flex-1 se-btn-secondary py-2 text-xs rounded-lg">Cancelar</button>
+        <button id="okConfirmBtn" class="flex-1 bg-red-900 hover:bg-red-800 text-white font-bold py-2 text-xs rounded-lg border border-red-600 shadow-[2px_2px_0px_#000]">Executar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RODAPÉ DA APLICAÇÃO -->
+  <footer class="mt-12 border-t border-zinc-800/80 bg-[#060608] py-6 text-xs text-zinc-500">
+    <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+      <div>
+        <p class="font-bold text-zinc-400 tracking-wider uppercase">D'Arc System</p>
+        <p class="text-[11px] text-zinc-600">Central de Gerenciamento e Monitoramento de Dados</p>
+      </div>
+      <div class="flex items-center gap-4 text-[11px] text-zinc-600 font-mono">
+        <span>STATUS: OPERACIONAL</span>
+        <span>|</span>
+        <span>MOTAˢⁱⁿ</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
